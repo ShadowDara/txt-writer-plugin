@@ -1,15 +1,14 @@
 import {
-	App,
 	FileView,
+	Plugin,
 	TFile,
-	WorkspaceLeaf,
-	Plugin
+	WorkspaceLeaf
 } from "obsidian";
 
 const TXT_VIEW_TYPE = "txt-viewer";
 
 class TxtView extends FileView {
-	contentEl!: HTMLPreElement;
+	private textEl: HTMLPreElement | null = null;
 
 	constructor(leaf: WorkspaceLeaf) {
 		super(leaf);
@@ -20,45 +19,84 @@ class TxtView extends FileView {
 	}
 
 	getDisplayText(): string {
-		return this.file?.name ?? "TXT";
+		return this.file?.name ?? "Text";
+	}
+	
+	private async renderFile(file: TFile): Promise<void> {
+console.log("renderFile", file.path);
+	  
+	if (!this.textEl) {
+		console.log("textEl fehlt");
+		return;
 	}
 
-	async onOpen() {
-		const container = this.containerEl.children[1] as HTMLElement;
+	const exists = this.app.vault.getAbstractFileByPath(file.path);
 
-		if (!container) return;
+	console.log("exists =", !!exists);
 
-		container.empty();
+	const text = await this.app.vault.read(file);
 
-		this.contentEl = container.createEl("pre", {
-			cls: "txt-viewer-content"
-		});
+	this.textEl.textContent = text;
+}
 
-		if (this.file) {
-			await this.loadFile(this.file);
-		}
+	async onOpen(): Promise<void> {
+	console.log("TxtView onOpen");
+
+	const content = this.contentEl;
+	content.empty();
+
+	this.textEl = content.createEl("pre");
+
+	console.log("this.file =", this.file?.path);
+
+	if (this.file) {
+		await this.renderFile(this.file);
 	}
+}
 
-	async onFileOpen(file: TFile | null) {
-		if (file) await this.loadFile(file);
-	}
-
-	private async loadFile(file: TFile) {
-		const text = await this.app.vault.read(file);
-		this.contentEl.textContent = text;
+	async onFileOpen(file: TFile | null): Promise<void> {
+	  // Debug Message
+	  console.log("onFileOpen", file?.path);
+	  
+		if (!file) return;
+		await this.renderFile(file);
 	}
 }
 
 export default class TxtViewerPlugin extends Plugin {
-	onload() {
-		this.registerView(TXT_VIEW_TYPE, (leaf: WorkspaceLeaf) => {
-			return new TxtView(leaf);
-		});
+	async onload(): Promise<void> {
+		console.log("TXT Viewer geladen");
+		
+		console.log(
+		"Aktiver TxtView:",
+		this.app.workspace.getActiveViewOfType(TxtView)
+	);
 
-		this.registerExtensions(["txt"], TXT_VIEW_TYPE);
+		this.registerView(
+			TXT_VIEW_TYPE,
+			(leaf) => new TxtView(leaf)
+		);
+
+		this.registerExtensions(
+			["txt"],
+			TXT_VIEW_TYPE
+		);
+		
+		this.registerEvent(
+			this.app.workspace.on("file-open", (file) => {
+				console.log("Datei geöffnet:", file?.path);
+
+				console.log(
+					"Aktiver TxtView:",
+					this.app.workspace.getActiveViewOfType(TxtView)
+				);
+			})
+		);
 	}
-	
-	onunload() {
-		this.app.workspace.getLeavesOfType(TXT_VIEW_TYPE).forEach(l => l.detach());
+
+	async onunload(): Promise<void> {
+		this.app.workspace
+			.getLeavesOfType(TXT_VIEW_TYPE)
+			.forEach((leaf) => leaf.detach());
 	}
 }
