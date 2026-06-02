@@ -22,6 +22,7 @@ class TxtView extends FileView {
 		return this.file?.name ?? "Text";
 	}
 	
+	// Render File
 	private async renderFile(file: TFile): Promise<void> {
 console.log("renderFile", file.path);
 	  
@@ -35,32 +36,23 @@ console.log("renderFile", file.path);
 	console.log("exists =", !!exists);
 
 	const text = await this.app.vault.read(file);
+	console.log("File Content: ", text);
 
 	this.textEl.textContent = text;
 }
 
-	async onOpen(): Promise<void> {
+// on 
+async onOpen(): Promise<void> {
 	console.log("TxtView onOpen");
 
-	const content = this.contentEl;
-	content.empty();
-
-	this.textEl = content.createEl("pre");
-
-	console.log("this.file =", this.file?.path);
-
-	if (this.file) {
-		await this.renderFile(this.file);
-	}
+	this.contentEl.empty();
+	this.textEl = this.contentEl.createEl("pre");
 }
 
-	async onFileOpen(file: TFile | null): Promise<void> {
-	  // Debug Message
-	  console.log("onFileOpen", file?.path);
-	  
-		if (!file) return;
-		await this.renderFile(file);
-	}
+async onLoadFile(file: TFile): Promise<void> {
+	console.log("onLoadFile", file.path);
+	await this.renderFile(file);
+}
 }
 
 export default class TxtViewerPlugin extends Plugin {
@@ -85,6 +77,7 @@ export default class TxtViewerPlugin extends Plugin {
 		this.registerEvent(
 			this.app.workspace.on("file-open", (file) => {
 				console.log("Datei geöffnet:", file?.path);
+				//console.log("Content: ", file?.content);
 
 				console.log(
 					"Aktiver TxtView:",
