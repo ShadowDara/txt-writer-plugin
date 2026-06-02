@@ -6,3 +6,11 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
+
+.txt-viewer-content {
+	font-family: monospace;
+	white-space: pre-wrap;
+	word-break: break-word;
+	padding: 1rem;
+	margin: 0;
+}
