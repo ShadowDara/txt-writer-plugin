@@ -8,7 +8,7 @@ import {
 const TXT_VIEW_TYPE = "txt-viewer";
 
 class TxtView extends FileView {
-	private textEl: HTMLPreElement | null = null;
+	private textEl: HTMLTextAreaElement | null = null;
 
 	constructor(leaf: WorkspaceLeaf) {
 		super(leaf);
@@ -24,21 +24,10 @@ class TxtView extends FileView {
 	
 	// Render File
 	private async renderFile(file: TFile): Promise<void> {
-console.log("renderFile", file.path);
-	  
-	if (!this.textEl) {
-		console.log("textEl fehlt");
-		return;
-	}
-
-	const exists = this.app.vault.getAbstractFileByPath(file.path);
-
-	console.log("exists =", !!exists);
+	if (!this.textEl) return;
 
 	const text = await this.app.vault.read(file);
-	console.log("File Content: ", text);
-
-	this.textEl.textContent = text;
+	this.textEl.value = text;
 }
 
 // on 
@@ -46,7 +35,15 @@ async onOpen(): Promise<void> {
 	console.log("TxtView onOpen");
 
 	this.contentEl.empty();
-	this.textEl = this.contentEl.createEl("pre");
+
+	this.textEl = this.contentEl.createEl("textarea");
+	this.textEl.style.width = "100%";
+	this.textEl.style.height = "100%";
+
+	this.textEl.addEventListener("input", async () => {
+		if (!this.file) return;
+		await this.app.vault.modify(this.file, this.textEl!.value);
+	});
 }
 
 async onLoadFile(file: TFile): Promise<void> {
@@ -59,10 +56,7 @@ export default class TxtViewerPlugin extends Plugin {
 	async onload(): Promise<void> {
 		console.log("TXT Viewer geladen");
 		
-		console.log(
-		"Aktiver TxtView:",
-		this.app.workspace.getActiveViewOfType(TxtView)
-	);
+		//console.log("Aktiver TxtView:", this.app.workspace.getActiveViewOfType(TxtView));
 
 		this.registerView(
 			TXT_VIEW_TYPE,
