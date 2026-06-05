@@ -37,17 +37,19 @@ export class TimelineView extends ItemView {
     void this.render();
   }
 
-  async onOpen() {
-    this.root = createRoot(this.contentEl);
-
-    // Get file from leaf if available
-    if (!this.file && this.leaf.view) {
-      const leafView = this.leaf.view as any;
-      const leafFile = leafView.file as TFile | undefined;
-      if (leafFile) {
-        this.file = leafFile;
-      }
+  async setState(state: any, result: any): Promise<void> {
+    if (state?.filePath) {
+      this.file = this.app.vault.getAbstractFileByPath(state.filePath) as TFile;
     }
+
+    await this.loadDataFromFile();
+    this.render();
+  }
+
+  async onOpen() {
+    console.log("TimelineView opened");
+    
+    this.root = createRoot(this.contentEl);
 
     // Load and render
     await this.loadDataFromFile();

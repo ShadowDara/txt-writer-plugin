@@ -31,16 +31,28 @@ export default class TimelinePlugin extends Plugin {
       id: "open-timeline-view",
       name: "Open timeline view",
       callback: async () => {
-        const leaf = this.app.workspace.getRightLeaf(false);
+        const leaf = this.app.workspace.getRightLeaf(false) ?? this.app.workspace.getLeaf(true);
         if (!leaf) {
           new Notice("Could not open timeline view.");
           return;
         }
 
-        await leaf.setViewState({
-          type: TIMELINE_VIEW_TYPE,
-          active: true,
-        });
+        console.log("Opening timeline view");
+        console.log("Leaf:", leaf);
+
+        const file = this.app.workspace.getActiveFile();
+
+        try {
+          await leaf.setViewState({
+            type: TIMELINE_VIEW_TYPE,
+            state: {
+              filePath: file?.path ?? null,
+            },
+            active: true,
+          });
+        } catch (e) {
+          console.error(e);
+        }
       },
     });
   }
