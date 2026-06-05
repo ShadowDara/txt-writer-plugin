@@ -1,5 +1,5 @@
 import React from "react";
-import { layoutTimeline } from "./timeline";
+import { layoutTimeline, normalizeTimelineEntries } from "./timeline";
 import { Timeline } from "./types";
 
 interface Props {
@@ -18,7 +18,9 @@ function formatDate(dateString: string): string {
 }
 
 export function TimelineSVG({ data, width = 800, rowHeight = 40 }: Props) {
-  if (!data || !data.entries || data.entries.length === 0) {
+  const entries = data ? normalizeTimelineEntries(data.entries) : [];
+
+  if (entries.length === 0) {
     return (
       <div style={{ padding: 16, textAlign: "center", color: "var(--text-muted)" }}>
         No timeline data. Create one using the edit mode.
@@ -26,7 +28,7 @@ export function TimelineSVG({ data, width = 800, rowHeight = 40 }: Props) {
     );
   }
 
-  const items = layoutTimeline(data.entries, width, 300);
+  const items = layoutTimeline(entries, width, 300);
   const totalHeight = (Math.max(...items.map(i => i.row), 0) + 1) * rowHeight + 80;
 
   return (

@@ -11,7 +11,7 @@ export function layoutTimeline(
   width: number,
   _height: number
 ): PositionedEntry[] {
-  const sorted = [...entries].sort(
+  const sorted = normalizeTimelineEntries(entries).sort(
     (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
   );
 
@@ -53,4 +53,21 @@ export function layoutTimeline(
   }
 
   return positioned;
+}
+
+export function normalizeTimelineEntries(entries: TimelineEntry[]): TimelineEntry[] {
+  return entries
+    .map((entry) => ({
+      name: entry.name.trim(),
+      start: entry.start,
+      end: entry.end,
+    }))
+    .filter(isDrawableTimelineEntry);
+}
+
+function isDrawableTimelineEntry(entry: TimelineEntry): boolean {
+  const start = new Date(entry.start).getTime();
+  const end = new Date(entry.end).getTime();
+
+  return entry.name.length > 0 && Number.isFinite(start) && Number.isFinite(end);
 }

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { TimelineEntry } from "./types";
 import { safeEncodeTimeline, wrapTimelineMarkdown } from "./core";
+import { normalizeTimelineEntries } from "./timeline";
 
 interface TimelineCreatorProps {
   initialEntries?: TimelineEntry[];
@@ -8,10 +9,10 @@ interface TimelineCreatorProps {
 }
 
 export function TimelineCreator({ initialEntries = [], onExport }: TimelineCreatorProps) {
-  const [entries, setEntries] = useState<TimelineEntry[]>(initialEntries);
+  const [entries, setEntries] = useState<TimelineEntry[]>(() => normalizeTimelineEntries(initialEntries));
 
   useEffect(() => {
-    setEntries(initialEntries);
+    setEntries(normalizeTimelineEntries(initialEntries));
   }, [initialEntries]);
 
   const addEntry = () => {
@@ -46,7 +47,7 @@ export function TimelineCreator({ initialEntries = [], onExport }: TimelineCreat
 
   const exportTimeline = () => {
     try {
-      const base64 = safeEncodeTimeline({ entries, magic: "TIMELINE_V1_Shadowdara" });
+      const base64 = safeEncodeTimeline({ entries: normalizeTimelineEntries(entries), magic: "TIMELINE_V1_Shadowdara" });
       const markdown = wrapTimelineMarkdown(base64);
       onExport(markdown);
     } catch (error: unknown) {
