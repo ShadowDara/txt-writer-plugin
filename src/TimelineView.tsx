@@ -4,7 +4,7 @@ import { createRoot, Root } from "react-dom/client";
 
 import { TimelineSVG } from "./render";
 import { TimelineCreator } from "./creator";
-import { safeDecodeTimeline, extractTimelineFromMarkdown } from "./core";
+import { extractTimelineFromMarkdown, replaceTimelineMarkdownDocument, safeDecodeTimeline } from "./core";
 import { Timeline } from "./types";
 
 export const TIMELINE_VIEW_TYPE = "timeline-view";
@@ -141,12 +141,11 @@ export class TimelineView extends ItemView {
                     }
 
                     const content = await this.app.vault.read(this.file);
-                    
-                    // Remove existing timeline if present
-                    const cleanContent = content.replace(/```timeline[\s\S]*?```\n?/g, "");
-                    
-                    // Append new timeline
-                    const newContent = cleanContent + (cleanContent.endsWith("\n") ? "" : "\n") + md;
+                    const newContent = replaceTimelineMarkdownDocument(
+                      content,
+                      md,
+                      getTimelineDisplayName(this.file)
+                    );
                     
                     await this.app.vault.modify(this.file, newContent);
                     await this.loadDataFromFile();

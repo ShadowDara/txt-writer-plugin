@@ -1,4 +1,5 @@
 import { App, ButtonComponent, MarkdownView, Menu, Modal, Notice, Plugin, TFile, TextComponent, WorkspaceLeaf } from "obsidian";
+import { createTimelineMarkdownDocument } from "./core";
 import { TimelineView, TIMELINE_VIEW_TYPE } from "./TimelineView";
 import { TimelineCreatorModal } from "./TimelineModal";
 
@@ -147,7 +148,7 @@ export default class TimelinePlugin extends Plugin {
           }
 
           const fileName = `${name}.timeline.md`;
-          const fileContent = `# ${name}\n\n${markdown}`;
+          const fileContent = createTimelineMarkdownDocument(name, markdown);
           
           const file = await this.app.vault.create(fileName, fileContent);
           
