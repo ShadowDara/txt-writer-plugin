@@ -1,4 +1,4 @@
-import { Plugin, Notice, Modal, App, ButtonComponent, TextComponent } from "obsidian";
+import { App, ButtonComponent, Menu, Modal, Notice, Plugin, TFile, TextComponent } from "obsidian";
 import { TimelineView, TIMELINE_VIEW_TYPE } from "./TimelineView";
 import { TimelineCreatorModal } from "./TimelineModal";
 
@@ -9,13 +9,25 @@ export default class TimelinePlugin extends Plugin {
       (leaf) => new TimelineView(leaf)
     );
 
-    // Register extension for .timeline.md files
-    this.registerExtensions(["timeline.md"], TIMELINE_VIEW_TYPE);
-
     // Add ribbon icon to create timeline
     this.addRibbonIcon("calendar", "Create timeline", () => {
       this.createTimelineFlow();
     });
+
+    this.registerEvent(
+      this.app.workspace.on("file-menu", (menu: Menu, file) => {
+        if (file instanceof TFile && this.isTimelineFile(file)) {
+          menu.addItem((item) => {
+            item
+              .setTitle("Open as timeline")
+              .setIcon("calendar")
+              .onClick(() => {
+                void this.openTimelineFile(file);
+              });
+          });
+        }
+      })
+    );
 
     // Add command to create a new timeline
     this.addCommand({
@@ -31,29 +43,36 @@ export default class TimelinePlugin extends Plugin {
       id: "open-timeline-view",
       name: "Open timeline view",
       callback: async () => {
-        const leaf = this.app.workspace.getRightLeaf(false) ?? this.app.workspace.getLeaf(true);
-        if (!leaf) {
-          new Notice("Could not open timeline view.");
+        const file = this.app.workspace.getActiveFile();
+
+        if (!file) {
+          new Notice("Open a timeline file first.");
           return;
         }
 
-        console.log("Opening timeline view");
-        console.log("Leaf:", leaf);
-
-        const file = this.app.workspace.getActiveFile();
-
-        try {
-          await leaf.setViewState({
-            type: TIMELINE_VIEW_TYPE,
-            state: {
-              filePath: file?.path ?? null,
-            },
-            active: true,
-          });
-        } catch (e) {
-          console.error(e);
-        }
+        await this.openTimelineFile(file);
       },
+    });
+  }
+
+  private isTimelineFile(file: TFile): boolean {
+    return file.path.endsWith(".timeline.md");
+  }
+
+  private async openTimelineFile(file: TFile): Promise<void> {
+    const leaf = this.app.workspace.getRightLeaf(false) ?? this.app.workspace.getLeaf(true);
+
+    if (!leaf) {
+      new Notice("Could not open timeline view.");
+      return;
+    }
+
+    await leaf.setViewState({
+      type: TIMELINE_VIEW_TYPE,
+      state: {
+        filePath: file.path,
+      },
+      active: true,
     });
   }
 
@@ -74,8 +93,7 @@ export default class TimelinePlugin extends Plugin {
           
           new Notice(`Timeline "${name}" created successfully!`);
           
-          const leaf = this.app.workspace.getLeaf();
-          await leaf.openFile(file);
+          await this.openTimelineFile(file);
         } catch (error) {
           console.error("Error creating timeline:", error);
           new Notice("Failed to create timeline. Check console for details.");

@@ -9,20 +9,25 @@ type PositionedEntry = TimelineEntry & {
 export function layoutTimeline(
   entries: TimelineEntry[],
   width: number,
-  height: number
+  _height: number
 ): PositionedEntry[] {
   const sorted = [...entries].sort(
     (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
   );
+
+  if (sorted.length === 0) {
+    return [];
+  }
 
   const lanes: TimelineEntry[][] = [];
   const positioned: PositionedEntry[] = [];
 
   const minTime = Math.min(...sorted.map(e => +new Date(e.start)));
   const maxTime = Math.max(...sorted.map(e => +new Date(e.end)));
+  const timeRange = Math.max(1, maxTime - minTime);
 
   const timeToX = (t: number) =>
-    ((t - minTime) / (maxTime - minTime)) * width;
+    ((t - minTime) / timeRange) * width;
 
   for (const entry of sorted) {
     const start = +new Date(entry.start);

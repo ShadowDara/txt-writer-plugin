@@ -1,4 +1,4 @@
-import { ItemView, Notice, WorkspaceLeaf, TFile } from "obsidian";
+import { ItemView, Notice, TFile, ViewStateResult, WorkspaceLeaf } from "obsidian";
 import React from "react";
 import { createRoot, Root } from "react-dom/client";
 
@@ -37,18 +37,19 @@ export class TimelineView extends ItemView {
     void this.render();
   }
 
-  async setState(state: any, result: any): Promise<void> {
-    if (state?.filePath) {
-      this.file = this.app.vault.getAbstractFileByPath(state.filePath) as TFile;
+  async setState(state: unknown, result: ViewStateResult): Promise<void> {
+    await super.setState(state, result);
+
+    if (isTimelineViewState(state)) {
+      const file = this.app.vault.getAbstractFileByPath(state.filePath);
+      this.file = file instanceof TFile ? file : null;
     }
 
     await this.loadDataFromFile();
-    this.render();
+    void this.render();
   }
 
   async onOpen() {
-    console.log("TimelineView opened");
-    
     this.root = createRoot(this.contentEl);
 
     // Load and render
@@ -108,7 +109,7 @@ export class TimelineView extends ItemView {
               color: "var(--text-normal)",
             }}
           >
-            {this.mode === "view" ? "📊 View" : "✏️ Edit"}
+            {this.mode === "view" ? "View" : "Edit"}
           </button>
           {this.file && (
             <span style={{ fontSize: "0.9em", color: "var(--text-muted)", marginLeft: "auto", display: "flex", alignItems: "center" }}>
@@ -159,4 +160,17 @@ export class TimelineView extends ItemView {
   async onClose() {
     this.root?.unmount();
   }
+}
+
+interface TimelineViewState {
+  filePath: string;
+}
+
+function isTimelineViewState(state: unknown): state is TimelineViewState {
+  return (
+    typeof state === "object" &&
+    state !== null &&
+    "filePath" in state &&
+    typeof state.filePath === "string"
+  );
 }
