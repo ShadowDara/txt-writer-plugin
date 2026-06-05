@@ -24,7 +24,7 @@ export class TimelineView extends ItemView {
   }
 
   getDisplayText() {
-    return this.file?.basename || "Timeline";
+    return this.file ? getTimelineDisplayName(this.file) : "Timeline";
   }
 
   getIcon() {
@@ -37,13 +37,21 @@ export class TimelineView extends ItemView {
     void this.render();
   }
 
-  async setState(state: unknown, result: ViewStateResult): Promise<void> {
-    await super.setState(state, result);
+  getState(): Record<string, unknown> {
+    return {
+      ...super.getState(),
+      filePath: this.file?.path,
+    };
+  }
 
+  async setState(state: unknown, result: ViewStateResult): Promise<void> {
     if (isTimelineViewState(state)) {
       const file = this.app.vault.getAbstractFileByPath(state.filePath);
       this.file = file instanceof TFile ? file : null;
     }
+
+    await super.setState(state, result);
+    result.history = true;
 
     await this.loadDataFromFile();
     void this.render();
@@ -113,7 +121,7 @@ export class TimelineView extends ItemView {
           </button>
           {this.file && (
             <span style={{ fontSize: "0.9em", color: "var(--text-muted)", marginLeft: "auto", display: "flex", alignItems: "center" }}>
-              {this.file.basename}
+              Timeline
             </span>
           )}
         </div>
@@ -173,4 +181,10 @@ function isTimelineViewState(state: unknown): state is TimelineViewState {
     "filePath" in state &&
     typeof state.filePath === "string"
   );
+}
+
+function getTimelineDisplayName(file: TFile): string {
+  return file.basename.endsWith(".timeline")
+    ? file.basename.slice(0, -".timeline".length)
+    : file.basename;
 }

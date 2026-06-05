@@ -1,8 +1,10 @@
-import { App, ButtonComponent, Menu, Modal, Notice, Plugin, TFile, TextComponent } from "obsidian";
+import { App, ButtonComponent, MarkdownView, Menu, Modal, Notice, Plugin, TFile, TextComponent, WorkspaceLeaf } from "obsidian";
 import { TimelineView, TIMELINE_VIEW_TYPE } from "./TimelineView";
 import { TimelineCreatorModal } from "./TimelineModal";
 
 export default class TimelinePlugin extends Plugin {
+  private timelineOpenTimeout: number | null = null;
+
   async onload() {
     this.registerView(
       TIMELINE_VIEW_TYPE,
@@ -12,6 +14,20 @@ export default class TimelinePlugin extends Plugin {
     // Add ribbon icon to create timeline
     this.addRibbonIcon("calendar", "Create timeline", () => {
       this.createTimelineFlow();
+    });
+
+    this.registerEvent(
+      this.app.workspace.on("file-open", (file) => {
+        if (file instanceof TFile && this.isTimelineFile(file)) {
+          this.scheduleTimelineFileOpen(file);
+        }
+      })
+    );
+
+    this.register(() => {
+      if (this.timelineOpenTimeout !== null) {
+        window.clearTimeout(this.timelineOpenTimeout);
+      }
     });
 
     this.registerEvent(
@@ -66,6 +82,47 @@ export default class TimelinePlugin extends Plugin {
 
   private async openTimelineFile(file: TFile): Promise<void> {
     const leaf = this.app.workspace.getLeaf("tab");
+
+    await this.openTimelineFileInLeaf(file, leaf);
+  }
+
+  private scheduleTimelineFileOpen(file: TFile): void {
+    if (this.timelineOpenTimeout !== null) {
+      window.clearTimeout(this.timelineOpenTimeout);
+    }
+
+    this.timelineOpenTimeout = window.setTimeout(() => {
+      this.timelineOpenTimeout = null;
+      void this.openTimelineFileInOpenedMarkdownLeaf(file);
+    }, 50);
+  }
+
+  private async openTimelineFileInOpenedMarkdownLeaf(file: TFile): Promise<void> {
+    const leaf = this.findOpenMarkdownLeaf(file) ?? this.app.workspace.getLeaf("tab");
+
+    await this.openTimelineFileInLeaf(file, leaf);
+  }
+
+  private findOpenMarkdownLeaf(file: TFile): WorkspaceLeaf | null {
+    let matchingLeaf: WorkspaceLeaf | null = null;
+
+    this.app.workspace.iterateAllLeaves((leaf) => {
+      if (matchingLeaf !== null) {
+        return;
+      }
+
+      if (leaf.view instanceof MarkdownView && leaf.view.file?.path === file.path) {
+        matchingLeaf = leaf;
+      }
+    });
+
+    return matchingLeaf;
+  }
+
+  private async openTimelineFileInLeaf(file: TFile, leaf: WorkspaceLeaf): Promise<void> {
+    if (leaf.view.getViewType() === TIMELINE_VIEW_TYPE) {
+      return;
+    }
 
     await leaf.setViewState({
       type: TIMELINE_VIEW_TYPE,
