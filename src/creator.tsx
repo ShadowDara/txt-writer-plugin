@@ -1,15 +1,18 @@
-import React, { useState } from "react";
-import { TimelineEntry, Timeline } from "./types";
+import React, { useEffect, useState } from "react";
+import { TimelineEntry } from "./types";
 import { safeEncodeTimeline, wrapTimelineMarkdown } from "./core";
 
-const EMPTY: Timeline = {
-  magic: "TIMELINE_V1_Shadowdara",
-  version: 1,
-  entries: [],
-};
+interface TimelineCreatorProps {
+  initialEntries?: TimelineEntry[];
+  onExport: (md: string) => void;
+}
 
-export function TimelineCreator({ onExport }: { onExport: (md: string) => void }) {
-  const [entries, setEntries] = useState<TimelineEntry[]>(EMPTY.entries);
+export function TimelineCreator({ initialEntries = [], onExport }: TimelineCreatorProps) {
+  const [entries, setEntries] = useState<TimelineEntry[]>(initialEntries);
+
+  useEffect(() => {
+    setEntries(initialEntries);
+  }, [initialEntries]);
 
   const addEntry = () => {
     setEntries([
@@ -23,19 +26,19 @@ export function TimelineCreator({ onExport }: { onExport: (md: string) => void }
   };
 
   const updateEntry = (
-  index: number,
-  field: keyof TimelineEntry,
-  value: string
-) => {
-  const copy = [...entries];
+    index: number,
+    field: keyof TimelineEntry,
+    value: string
+  ) => {
+    const copy = [...entries];
 
-  copy[index] = {
-    ...copy[index],
-    [field]: value,
-  } as TimelineEntry;
+    copy[index] = {
+      ...copy[index],
+      [field]: value,
+    } as TimelineEntry;
 
-  setEntries(copy);
-};
+    setEntries(copy);
+  };
 
   const removeEntry = (index: number) => {
     setEntries(entries.filter((_, i) => i !== index));
@@ -90,7 +93,7 @@ export function TimelineCreator({ onExport }: { onExport: (md: string) => void }
                     onChange={(ev) =>
                       updateEntry(i, "start", new Date(ev.target.value).toISOString())
                     }
-                    style={{ width: "100%", padding: 6, boxSizing: "border-box" }}
+                    style={{ width: "100%", padding: 6, boxSizing: "border-box", paddingLeft: 27 }}
                   />
                 </div>
                 <div>
@@ -101,7 +104,7 @@ export function TimelineCreator({ onExport }: { onExport: (md: string) => void }
                     onChange={(ev) =>
                       updateEntry(i, "end", new Date(ev.target.value).toISOString())
                     }
-                    style={{ width: "100%", padding: 6, boxSizing: "border-box" }}
+                    style={{ width: "100%", padding: 6, boxSizing: "border-box", paddingLeft: 27 }}
                   />
                 </div>
               </div>

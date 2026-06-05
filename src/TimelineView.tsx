@@ -131,6 +131,7 @@ export class TimelineView extends ItemView {
             <TimelineSVG data={this.data} />
           ) : (
             <TimelineCreator
+              initialEntries={this.data?.entries ?? []}
               onExport={(md) => {
                 void (async () => {
                   try {
