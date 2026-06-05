@@ -1,53 +1,86 @@
-# Obsidian Sample Plugin
+# Timelines Plugin for Obsidian
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+A powerful and intuitive timeline visualization plugin for Obsidian. Create, edit, and view beautiful timelines directly in your notes.
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+## Features
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
+✨ **Visual Timeline Rendering** - Display events on an interactive timeline with automatic layout
+📝 **Easy Entry Creation** - Add events with names, start dates, and end dates  
+💾 **Markdown Integration** - Timelines are stored as base64-encoded data in markdown code blocks
+🎨 **Dark Mode Support** - Automatically adapts to your Obsidian theme
+🔄 **Toggle View/Edit** - Switch between viewing your timeline and editing entries
+📊 **Smart Layout** - Automatically arranges overlapping events in multiple rows
 
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open modal (simple)" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and outputs a Notice on click.
-- Registers a global interval which logs 'setInterval' to the console.
+## Installation
 
-## First time developing plugins?
+1. Open Obsidian Settings → Community Plugins
+2. Search for "Timelines"
+3. Click Install, then Enable
 
-Quick starting guide for new plugin devs:
+## Usage
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `src/main.ts` to `main.js`.
-- Make changes to `src/main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+### Creating a Timeline
 
-## Releasing new releases
+1. Click the Calendar icon in the left ribbon, or use the command palette
+2. In the Timeline view, click the **✏️ Edit** button
+3. Click **+ Add Entry** to create new timeline entries
+4. Fill in:
+   - **Event Name**: Title of the event (e.g., "Project Launch")
+   - **Start Date**: When the event begins
+   - **End Date**: When the event ends
+5. Click **Export** to save the timeline to your current note
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+### Viewing a Timeline
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+1. Once exported, click the **📊 View** button to see your timeline
+2. The timeline displays all events in chronological order
+3. Hover over events to see their exact dates
 
-## Adding your plugin to the community plugin list
+### Format
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+Timelines are stored in your markdown as:
 
-## How to use
+```markdown
+```timeline
+<base64-encoded-compressed-timeline-data>
+```
+```
 
-- Clone this repo.
+This format allows timelines to coexist with your other markdown content.
+
+## Data Structure
+
+Each timeline entry contains:
+- `name`: Event name/title
+- `start`: Start date (ISO 8601 format)
+- `end`: End date (ISO 8601 format)
+
+## Tips
+
+- **Organize your notes**: Keep related timelines together
+- **Use in tables**: Timelines work great alongside other note content
+- **Multiple timelines**: You can have multiple timelines in one note
+- **Date flexibility**: Use the date picker for precise date selection
+
+## Known Limitations
+
+- Timeline data is embedded in markdown files only
+- Web clipper support may require additional configuration
+- Mobile performance depends on timeline size
+
+## Support
+
+For issues, feature requests, or suggestions, please open an issue on GitHub.
+
+## Changelog
+
+### v1.0.0
+- Initial release
+- Core timeline rendering
+- Entry creation and editing
+- View/Edit mode toggle
+- Markdown integration
+
 - Make sure your NodeJS is at least v18 (`node --version`).
 - `npm i` to install dependencies.
 - `npm run dev` to start compilation in watch mode.

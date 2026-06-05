@@ -1,18 +1,9 @@
 import React, { useState } from "react";
-import LZString from "lz-string";
-
-export interface TimelineEntry {
-  name: string;
-  start: string;
-  end: string;
-}
-
-export interface Timeline {
-  version: number;
-  entries: TimelineEntry[];
-}
+import { TimelineEntry, Timeline } from "./types";
+import { safeEncodeTimeline, wrapTimelineMarkdown } from "./core";
 
 const EMPTY: Timeline = {
+  magic: "TIMELINE_V1_Shadowdara",
   version: 1,
   entries: [],
 };
@@ -51,58 +42,79 @@ export function TimelineCreator({ onExport }: { onExport: (md: string) => void }
   };
 
   const exportTimeline = () => {
-    const data: Timeline = {
-      version: 1,
-      entries,
-    };
-
-    const json = JSON.stringify(data);
-    const compressed = LZString.compressToBase64(json);
-
-    const markdown = `\`\`\`timeline
-${compressed}
-\`\`\``;
-
-    onExport(markdown);
+    try {
+      const base64 = safeEncodeTimeline({ entries, magic: "TIMELINE_V1_Shadowdara" });
+      const markdown = wrapTimelineMarkdown(base64);
+      onExport(markdown);
+    } catch (error: unknown) {
+      console.error("Failed to export timeline:", error);
+    }
   };
 
   return (
-    <div style={{ padding: 12 }}>
-      <h3>Timeline Creator</h3>
-
-      <button onClick={addEntry}>+ Add Entry</button>
-      <button onClick={exportTimeline} style={{ marginLeft: 8 }}>
-        Export
-      </button>
+    <div style={{ padding: 16, fontFamily: "var(--font-family)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <h3 style={{ margin: 0 }}>Timeline Creator</h3>
+        <div>
+          <button onClick={addEntry} style={{ marginRight: 8, padding: "6px 12px", cursor: "pointer" }}>
+            + Add Entry
+          </button>
+          <button onClick={exportTimeline} style={{ padding: "6px 12px", cursor: "pointer", backgroundColor: "#4f46e5", color: "white", border: "none", borderRadius: 4 }}>
+            Export
+          </button>
+        </div>
+      </div>
 
       <div style={{ marginTop: 12 }}>
-        {entries.map((e, i) => (
-          <div key={i} style={{ marginBottom: 8, borderBottom: "1px solid #333" }}>
-            <input
-              value={e.name}
-              onChange={(ev) => updateEntry(i, "name", ev.target.value)}
-              placeholder="Name"
-            />
+        {entries.length === 0 ? (
+          <p style={{ color: "var(--text-muted)" }}>No entries yet. Click "+ Add Entry" to get started!</p>
+        ) : (
+          entries.map((e, i) => (
+            <div key={i} style={{ marginBottom: 16, padding: 12, backgroundColor: "var(--background-secondary)", borderRadius: 4, border: "1px solid var(--divider-color)" }}>
+              <div style={{ marginBottom: 8 }}>
+                <label style={{ display: "block", marginBottom: 4, fontSize: "0.9em", color: "var(--text-muted)" }}>Event Name</label>
+                <input
+                  value={e.name}
+                  onChange={(ev) => updateEntry(i, "name", ev.target.value)}
+                  placeholder="E.g., Project Launch"
+                  style={{ width: "100%", padding: 6, boxSizing: "border-box", marginBottom: 8 }}
+                />
+              </div>
 
-            <input
-              type="datetime-local"
-              value={e.start.slice(0, 16)}
-              onChange={(ev) =>
-                updateEntry(i, "start", new Date(ev.target.value).toISOString())
-              }
-            />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
+                <div>
+                  <label style={{ display: "block", marginBottom: 4, fontSize: "0.9em", color: "var(--text-muted)" }}>Start Date</label>
+                  <input
+                    type="datetime-local"
+                    value={e.start.slice(0, 16)}
+                    onChange={(ev) =>
+                      updateEntry(i, "start", new Date(ev.target.value).toISOString())
+                    }
+                    style={{ width: "100%", padding: 6, boxSizing: "border-box" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: "block", marginBottom: 4, fontSize: "0.9em", color: "var(--text-muted)" }}>End Date</label>
+                  <input
+                    type="datetime-local"
+                    value={e.end.slice(0, 16)}
+                    onChange={(ev) =>
+                      updateEntry(i, "end", new Date(ev.target.value).toISOString())
+                    }
+                    style={{ width: "100%", padding: 6, boxSizing: "border-box" }}
+                  />
+                </div>
+              </div>
 
-            <input
-              type="datetime-local"
-              value={e.end.slice(0, 16)}
-              onChange={(ev) =>
-                updateEntry(i, "end", new Date(ev.target.value).toISOString())
-              }
-            />
-
-            <button onClick={() => removeEntry(i)}>Delete</button>
-          </div>
-        ))}
+              <button 
+                onClick={() => removeEntry(i)}
+                style={{ padding: "6px 12px", cursor: "pointer", color: "#e74c3c" }}
+              >
+                Delete
+              </button>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

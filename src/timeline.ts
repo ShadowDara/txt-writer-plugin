@@ -1,4 +1,4 @@
-import { Timeline, TimelineEntry } from "./types";
+import { TimelineEntry } from "./types";
 
 type PositionedEntry = TimelineEntry & {
   x: number;

@@ -38,11 +38,11 @@ export function safeDecodeTimeline(data: string): Timeline {
     throw new Error("Decompression failed (invalid base64 or corrupted data)");
   }
 
-  let parsed: any;
+  let parsed: Record<string, unknown>;
 
   try {
-    parsed = JSON.parse(decompressed);
-  } catch (e) {
+    parsed = JSON.parse(decompressed) as Record<string, unknown>;
+  } catch {
     throw new Error("Invalid JSON after decompression");
   }
   
@@ -76,8 +76,14 @@ export function extractTimelineFromMarkdown(md: string): string | null {
 }
 
 // Function to assert the Timeline
-function assertTimeline(obj: any): asserts obj is Timeline {
-  if (!obj || obj.magic !== MAGIC) {
+function assertTimeline(obj: unknown): asserts obj is Timeline {
+  const isTimeline = (val: unknown): val is Timeline => {
+    if (!val || typeof val !== 'object') return false;
+    const timeline = val as Record<string, unknown>;
+    return timeline.magic === MAGIC;
+  };
+  
+  if (!isTimeline(obj)) {
     throw new Error("Invalid timeline format");
   }
 }
