@@ -50,6 +50,11 @@ export default class TimelinePlugin extends Plugin {
           return;
         }
 
+        if (!this.isTimelineFile(file)) {
+          new Notice("The active file is not a timeline file.");
+          return;
+        }
+
         await this.openTimelineFile(file);
       },
     });
@@ -60,12 +65,7 @@ export default class TimelinePlugin extends Plugin {
   }
 
   private async openTimelineFile(file: TFile): Promise<void> {
-    const leaf = this.app.workspace.getRightLeaf(false) ?? this.app.workspace.getLeaf(true);
-
-    if (!leaf) {
-      new Notice("Could not open timeline view.");
-      return;
-    }
+    const leaf = this.app.workspace.getLeaf("tab");
 
     await leaf.setViewState({
       type: TIMELINE_VIEW_TYPE,
@@ -74,6 +74,9 @@ export default class TimelinePlugin extends Plugin {
       },
       active: true,
     });
+
+    this.app.workspace.setActiveLeaf(leaf, { focus: true });
+    await this.app.workspace.revealLeaf(leaf);
   }
 
   private createTimelineFlow(): void {

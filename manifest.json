@@ -2,7 +2,7 @@
 	"id": "txt-writer-plugin",
 	"name": "Timelines",
 	"version": "1.0.0",
-	"minAppVersion": "1.0.0",
+	"minAppVersion": "1.7.2",
 	"description": "a Plugin to create beautiful Timelines in Obsidian.",
 	"author": "Shadowdara",
 	"authorUrl": "https://obsidian.md",
